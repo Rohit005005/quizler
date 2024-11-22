@@ -1,6 +1,7 @@
 // Sidenav.js
 "use client";
 
+import { EllipsisVertical } from "lucide-react";
 import React from "react";
 
 function Sidenav({ record, selectedNote, isOpen }) {
@@ -18,10 +19,11 @@ function Sidenav({ record, selectedNote, isOpen }) {
           {record.map((item, index) => (
             <div 
               key={index} 
-              className="flex p-2 m-2 bg-blue-800 text-md rounded-xl hover:text-lg hover:bg-blue-900 hover:p-3 transition-all cursor-pointer" 
+              className="flex p-2 m-2 bg-blue-800 text-md rounded-xl hover:text-lg hover:bg-blue-900 hover:p-3 transition-all cursor-pointer justify-between" 
               onClick={() => selectedNote(item.id)}
             >
               <h2>{item.title}</h2>
+              <EllipsisVertical/>
             </div>
           ))}
         </div>

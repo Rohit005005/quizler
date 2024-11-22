@@ -6,5 +6,6 @@ export const quizes=pgTable('quizes',{
     content:text('content').notNull(),
     quiz:text("quiz"),
     correctAns:numeric('correctAnswers'),
+    questions:text("questions"),
     createBy:varchar('createdBy').notNull()
 })

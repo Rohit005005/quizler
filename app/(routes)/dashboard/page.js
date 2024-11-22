@@ -19,6 +19,7 @@ import { quizes } from "@/configs/schema";
 import { and, desc, eq } from "drizzle-orm";
 import { LoaderCircle, Menu, X } from "lucide-react";
 import { AiSession } from "@/configs/AiModel";
+import QuestionInterface from "./_components/OuestionsInterface";
 
 function Dashboard() {
   const { user } = useUser();
@@ -28,8 +29,9 @@ function Dashboard() {
   const [noteContent, setNoteContent] = useState("");
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [isQuestionsOpen, setIsQuestionsOpen] = useState(false);
   const [isSidenavOpen, setIsSidenavOpen] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false); // State to track loading
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -51,7 +53,7 @@ function Dashboard() {
 
   const UpdateNote = async () => {
     if (selectedNote) {
-      const PROMPT = ` ,On the basis of the title and content provided generate a quiz covering each and every detail of the content, the title and content provided are actually student notes and they want quiz on it, the quiz generated should not repeat the questions, generate alot of relevant questions and provide quiz in json format having following fields:"questions" will be a array contaning- "Question", "4 options as (A,B,C,D)" and "CorrectAnswer" no other field should be added and spelling should be same as it is.Only give Json format nothing else is needed, dont include '''json''' in it. Sample: {
+      const QUIZ_PROMPT = ` ,On the basis of the title and content provided generate a quiz covering each and every detail of the content, the title and content provided are actually student notes and they want quiz on it, the quiz generated should not repeat the questions, generate alot of relevant questions and provide quiz in json format having following fields:"questions" will be a array contaning- "Question", "4 options as (A,B,C,D)" and "CorrectAnswer" no other field should be added and spelling should be same as it is. Only give JSON format, nothing else is needed.Only give Json format nothing else is needed, dont include '''json''' in it. Sample: {
   "questions": [
     {
       "Question": "What is the name of the lost city in the desert of Orin?",
@@ -144,16 +146,45 @@ function Dashboard() {
   ]
 }`;
 
+      const QUESTIONS_PROMPT = ` Based on the title and content provided, generate a set of long-answer questions that test deep understanding of the material. The questions should require detailed explanations and critical thinking. Provide the questions in JSON format with the following structure. Only give JSON format, nothing else is needed.Only give Json format nothing else is needed, dont include '''json''' in it. Sample:
+{
+  "longQuestions": [
+    {
+      "question": "Explain in detail how the Crystal Fountain's magical properties affected the city of Zirath and its eventual downfall. Include specific examples from the text.",
+      "expectedPoints": [
+        "Discussion of the fountain's magical properties",
+        "Impact on city development",
+        "Role in the city's downfall",
+        "Supporting evidence from the content"
+      ]
+    }
+  ]
+}`;
+
       setIsUpdating(true);
-      const result = await AiSession.sendMessage(
-        "Title: " + noteTitle + "  Content : " + noteContent + PROMPT
-      );
-      console.log(result.response.text());
-      if (result.response.text()) {
-        try {
+      try {
+        // Generate both quiz and questions in parallel
+        const [quizResult, questionsResult] = await Promise.all([
+          AiSession.sendMessage(
+            "Title: " + noteTitle + "  Content : " + noteContent + QUIZ_PROMPT
+          ),
+          AiSession.sendMessage(
+            "Title: " +
+              noteTitle +
+              "  Content : " +
+              noteContent +
+              QUESTIONS_PROMPT
+          ),
+        ]);
+
+        if (quizResult.response.text() && questionsResult.response.text()) {
           const resp = await db
             .update(quizes)
-            .set({ content: noteContent, quiz: result.response.text() })
+            .set({
+              content: noteContent,
+              quiz: quizResult.response.text(),
+              questions: questionsResult.response.text(),
+            })
             .where(eq(quizes.id, selectedNote));
 
           console.log("Database update response:", resp);
@@ -162,14 +193,20 @@ function Dashboard() {
           setRecord((prevRecord) =>
             prevRecord.map((item) =>
               item.id === selectedNote
-                ? { ...item, content: noteContent }
+                ? {
+                    ...item,
+                    content: noteContent,
+                    quiz: quizResult.response.text(),
+                    questions: questionsResult.response.text(),
+                  }
                 : item
             )
           );
-        } catch (error) {
-          console.error("Error updating note:", error);
         }
+      } catch (error) {
+        console.error("Error updating note:", error);
       }
+
       setIsUpdating(false);
     }
   };
@@ -192,9 +229,15 @@ function Dashboard() {
     if (type === "chat") {
       setIsChatOpen(!isChatOpen);
       setIsQuizOpen(false);
+      setIsQuestionsOpen(false);
     } else if (type === "quiz") {
       setIsQuizOpen(!isQuizOpen);
       setIsChatOpen(false);
+      setIsQuestionsOpen(false);
+    } else if (type === "questions") {
+      setIsQuestionsOpen(!isQuestionsOpen);
+      setIsChatOpen(false);
+      setIsQuizOpen(false);
     }
   };
 
@@ -274,12 +317,12 @@ function Dashboard() {
               {/* Actions Section */}
               <div className="flex flex-col gap-5">
                 <div className="flex items-center gap-4">
-                <div
+                  <div
                     onClick={UpdateNote} // Trigger the update on button click
                     className="text-white bg-blue-900 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors"
                   >
                     {isUpdating ? (
-                      <LoaderCircle className="animate-spin"/>
+                      <LoaderCircle className="animate-spin" />
                     ) : (
                       "Update Note"
                     )}
@@ -291,6 +334,14 @@ function Dashboard() {
                     >
                       Start Quiz
                     </div>
+                  )}
+                  {!isQuestionsOpen&&(
+                  <div
+                    onClick={() => toggleInterface("questions")}
+                    className="text-white bg-blue-900 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors"
+                  >
+                    Start Questions
+                  </div>
                   )}
                   {!isChatOpen && (
                     <div
@@ -313,6 +364,12 @@ function Dashboard() {
                   <Quiz
                     selectedNote={selectedNoteDetails}
                     onClose={() => setIsQuizOpen(false)}
+                  />
+                )}
+                {isQuestionsOpen && (
+                  <QuestionInterface
+                    selectedNote={selectedNoteDetails}
+                    onClose={() => setIsQuestionsOpen(false)}
                   />
                 )}
               </div>

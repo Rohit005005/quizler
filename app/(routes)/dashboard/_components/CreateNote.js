@@ -16,7 +16,7 @@ function CreateNote() {
   const [respId, setRespId] = useState();
   const route = useRouter();
 
-  const PROMPT = ` ,On the basis of the title and content provided generate a quiz covering each and every detail of the content, the title and content provided are actually student notes and they want quiz on it, the quiz generated should not repeat the questions, generate alot of relevant questions and provide quiz in json format having following fields:"questions" will be a array contaning- "Question", "4 options as (A,B,C,D)" and "CorrectAnswer" no other field should be added and spelling should be same as it is.Only give Json format nothing else is needed, dont include '''json''' in it. Sample: {
+  const QUIZ_PROMPT = ` ,On the basis of the title and content provided generate a quiz covering each and every detail of the content, the title and content provided are actually student notes and they want quiz on it, the quiz generated should not repeat the questions, generate alot of relevant questions and provide quiz in json format having following fields:"questions" will be a array contaning- "Question", "4 options as (A,B,C,D)" and "CorrectAnswer" no other field should be added and spelling should be same as it is.Only give Json format nothing else is needed, dont include '''json''' in it. Sample: {
   "questions": [
     {
       "Question": "What is the name of the lost city in the desert of Orin?",
@@ -109,23 +109,44 @@ function CreateNote() {
   ]
 }`;
 
+  const QUESTIONS_PROMPT = ` Based on the title and content provided, generate a set of long-answer questions that test deep understanding of the material. The questions should require detailed explanations and critical thinking. Provide the questions in JSON format with the following structure. Only give JSON format, nothing else is needed.Only give Json format nothing else is needed, dont include '''json''' in it. Sample:
+{
+  "longQuestions": [
+    {
+      "question": "Explain in detail how the Crystal Fountain's magical properties affected the city of Zirath and its eventual downfall. Include specific examples from the text.",
+      "expectedPoints": [
+        "Discussion of the fountain's magical properties",
+        "Impact on city development",
+        "Role in the city's downfall",
+        "Supporting evidence from the content"
+      ]
+    }
+  ]
+}`;
+
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
-    const result = await AiSession.sendMessage(
-      "Title: " + noteTitle + "  Content : " + noteContent + PROMPT
-    );
-    console.log(result.response.text());
-    if (result.response.text()) {
+    const [quizResult, questionsResult] = await Promise.all([
+      AiSession.sendMessage(
+        "Title: " + noteTitle + "  Content : " + noteContent + QUIZ_PROMPT
+      ),
+      AiSession.sendMessage(
+        "Title: " + noteTitle + "  Content : " + noteContent + QUESTIONS_PROMPT
+      ),
+    ]);
+    if (quizResult.response.text() && questionsResult.response.text()) {
       const resp = await db
         .insert(quizes)
         .values({
           title: noteTitle,
           content: noteContent,
-          quiz: result.response.text(),
+          quiz: quizResult.response.text(),
+          questions: questionsResult.response.text(), 
           createBy: user?.primaryEmailAddress?.emailAddress,
         })
         .returning({ id: quizes.id });
+
       if (resp[0].id) {
         setRespId(resp[0].id);
       }
