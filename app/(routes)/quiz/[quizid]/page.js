@@ -85,15 +85,15 @@ function Quiz({ params }) {
   };
 
   return (
-    <div className="quiz-container">
+    <div className="min-h-screen bg-gradient-to-br from-[#2e4d55] via-[#be9b7b] to-[#80a984] text-white">
       {quizFromDb && !quizCompleted && (
         <div>
-          <h1>Quiz Loaded:</h1>
+          <h1 className="pt-6 text-center text-2xl font-bold">Quiz</h1>
           <div
             key={currentQuestionIndex}
-            className="border border-red-500 h-screen flex flex-col justify-center items-center"
+            className="h-screen flex flex-col justify-center items-center"
           >
-            <p className="text-center px-10 py-2 mb-10">
+            <p className="text-center px-10 py-2 mb-10 text-xl">
               {quizFromDb.questions[currentQuestionIndex].Question}
             </p>
             <div className="flex flex-col justify-center items-center gap-10">
@@ -136,21 +136,23 @@ function Quiz({ params }) {
 
       {/* Show the results after the quiz is completed */}
       {quizCompleted && (
-        <div className="border border-red-500 flex flex-col justify-center items-center">
-          <h2>Quiz Completed!</h2>
-          <p >
+        <div className="flex flex-col justify-center items-center p-8">
+          <h2 className="text-3xl font-bold mb-6">Quiz Completed!</h2>
+          <p className="text-xl mb-6">
             Your Score: {calculateScore()} out of {quizFromDb.questions.length}
           </p>
-          <div>
+          <div className="bg-white/10 backdrop-blur-sm p-6 rounded-2xl mb-6">
             {selectedAnswers.map((answer, index) => (
               <div key={index} className="mb-4">
-                <p>Question: {answer.question}</p>
+                <p className="font-semibold">Question: {answer.question}</p>
                 <p>Your Answer: {answer.selected}</p>
                 <p>Correct Answer: {answer.correct}</p>
               </div>
             ))}
           </div>
-          <Button onClick={restartQuiz} className="mt-5">
+          <Button 
+            onClick={restartQuiz} 
+            className="mt-5 bg-amber-500 hover:bg-amber-600 text-white">
             Restart Quiz
           </Button>
         </div>

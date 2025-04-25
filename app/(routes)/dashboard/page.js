@@ -17,7 +17,18 @@ import CreateNote from "./_components/CreateNote";
 import { db } from "@/configs";
 import { quizes } from "@/configs/schema";
 import { and, desc, eq } from "drizzle-orm";
-import { LoaderCircle, Menu, X } from "lucide-react";
+import {
+  LoaderCircle,
+  Menu,
+  X,
+  MessageSquare,
+  BookOpen,
+  Brain,
+  PenLine,
+  Plus,
+  BrainCircuit,
+  Star,
+} from "lucide-react";
 import { AiSession } from "@/configs/AiModel";
 import QuestionInterface from "./_components/OuestionsInterface";
 
@@ -48,6 +59,27 @@ function Dashboard() {
 
     if (resp) {
       setRecord(resp);
+    }
+  };
+
+  const deleteNote = async (noteId) => {
+    try {
+      // Delete the note from the database
+      await db.delete(quizes).where(eq(quizes.id, noteId));
+
+      // Update the local state to remove the deleted note
+      setRecord((prevRecord) =>
+        prevRecord.filter((item) => item.id !== noteId)
+      );
+
+      // If the deleted note was selected, clear the selection
+      if (selectedNote === noteId) {
+        setSelectedNote(null);
+        setNoteTitle("");
+        setNoteContent("");
+      }
+    } catch (error) {
+      console.error("Error deleting note:", error);
     }
   };
 
@@ -146,7 +178,7 @@ function Dashboard() {
   ]
 }`;
 
-      const QUESTIONS_PROMPT = ` Based on the title and content provided, generate a set of long-answer questions that test deep understanding of the material. The questions should require detailed explanations and critical thinking. Provide the questions in JSON format with the following structure. Only give JSON format, nothing else is needed.Only give Json format nothing else is needed, dont include '''json''' in it. Sample:
+      const QUESTIONS_PROMPT = `Only give Json format nothing else is needed, dont include '''json''' in it... Based on the title and content provided, generate a set of long-answer questions that test deep understanding of the material. The questions should require detailed explanations and critical thinking. Provide the questions in JSON format with the following structure. Sample:
 {
   "longQuestions": [
     {
@@ -242,11 +274,11 @@ function Dashboard() {
   };
 
   return (
-    <div className="flex items-start h-screen bg-blue-500 relative">
+    <div className="flex items-start h-screen bg-gradient-to-br from-[#2e4d55] via-[#be9b7b] to-[#80a984] relative overflow-hidden">
       {/* Toggle Button */}
       <button
         onClick={() => setIsSidenavOpen(!isSidenavOpen)}
-        className="absolute top-5 left-5 z-50 bg-blue-700 p-2 rounded-lg hover:bg-blue-800 transition-colors text-white"
+        className="absolute top-5 left-5 z-50 bg-amber-500/70 p-2 rounded-full hover:bg-amber-500 transition-colors text-white shadow-lg"
         aria-label={isSidenavOpen ? "Close sidebar" : "Open sidebar"}
       >
         {isSidenavOpen ? <X size={24} /> : <Menu size={24} />}
@@ -256,6 +288,7 @@ function Dashboard() {
         record={record}
         selectedNote={setSelectedNote}
         isOpen={isSidenavOpen}
+        onDeleteNote={deleteNote}
       />
 
       <div
@@ -264,20 +297,22 @@ function Dashboard() {
         }`}
       >
         {/* Header Section */}
-        <div className="flex justify-between items-center w-full p-5 border-b border-blue-400">
-          <h1 className="text-white text-2xl font-semibold ml-12">Dashboard</h1>
-          <div className="flex flex-row-reverse justify-center items-center gap-10">
-            <UserButton />
+        <div className="flex justify-between items-center w-full p-4 border-b border-amber-500/30 backdrop-blur-sm bg-[#2e4d55]/20">
+          <h1 className="text-white text-2xl font-bold ml-14">
+            StudyMate Dashboard
+          </h1>
+          <div className="flex justify-center items-center gap-6">
             <Dialog>
               <DialogTrigger>
-                <p className="bg-[#203d6d] hover:bg-[#3568b9] text-white px-5 py-2 rounded-lg transition-colors">
-                  Create new
-                </p>
+                <button className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-lg transition-all shadow-md">
+                  <Plus size={18} />
+                  <span className="font-medium">New Note</span>
+                </button>
               </DialogTrigger>
-              <DialogContent className="border-none flex justify-center items-center">
+              <DialogContent className="border-none bg-gradient-to-b from-[#2e4d55] to-[#80a984] flex justify-center items-center">
                 <DialogHeader>
-                  <DialogTitle className="text-white text-center">
-                    Add new note
+                  <DialogTitle className="text-white text-center text-xl font-bold">
+                    Create New Note
                   </DialogTitle>
                   <DialogDescription>
                     <CreateNote />
@@ -285,101 +320,148 @@ function Dashboard() {
                 </DialogHeader>
               </DialogContent>
             </Dialog>
+            <UserButton />
           </div>
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 overflow-auto p-5 transition-all duration-300">
+        <div className="flex-1 overflow-auto p-6 transition-all duration-300">
           {selectedNoteDetails ? (
             <div
               className={`flex flex-col gap-5 ${
-                isSidenavOpen ? "grid grid-cols-1" : "grid grid-cols-2 gap-4"
+                isSidenavOpen ? "grid grid-cols-1" : "grid grid-cols-2 gap-6"
               }`}
             >
               {/* Note Editor Section */}
-              <div className="flex flex-col gap-5">
-                <input
-                  className="text-white p-3 text-2xl rounded-xl bg-blue-800 text-center focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  value={noteTitle}
-                  onChange={(e) => setNoteTitle(e.target.value)}
-                  placeholder="Title"
-                />
-                <textarea
-                  className={`text-white p-5 text-lg rounded-xl w-full bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none transition-all duration-300 ${
-                    !isSidenavOpen ? "h-[65vh]" : "h-[60vh]"
-                  }`}
-                  value={noteContent}
-                  onChange={handleContentChange}
-                  placeholder="Content"
-                />
+              <div className="flex flex-col gap-4">
+                <div className="bg-[#2e4d55]/30 backdrop-blur-sm rounded-xl shadow-lg p-1">
+                  <input
+                    className="text-white p-3 text-2xl rounded-xl bg-[#2e4d55]/50 text-center focus:outline-none focus:ring-2 focus:ring-amber-400 w-full font-bold border border-amber-700/50"
+                    value={noteTitle}
+                    onChange={(e) => setNoteTitle(e.target.value)}
+                    placeholder="Note Title"
+                  />
+                </div>
+                <div className="bg-[#2e4d55]/30 backdrop-blur-sm rounded-xl shadow-lg p-1 flex-1">
+                  <textarea
+                    className={`text-white p-5 text-lg rounded-xl w-full bg-[#2e4d55]/50 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none transition-all duration-300 border border-amber-700/50 ${
+                      !isSidenavOpen ? "h-[65vh]" : "h-[60vh]"
+                    }`}
+                    value={noteContent}
+                    onChange={handleContentChange}
+                    placeholder="Enter your note content here..."
+                  />
+                </div>
               </div>
 
               {/* Actions Section */}
               <div className="flex flex-col gap-5">
-                <div className="flex items-center gap-4">
-                  <div
-                    onClick={UpdateNote} // Trigger the update on button click
-                    className="text-white bg-blue-900 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors"
+                <div className="bg-[#2e4d55]/30 backdrop-blur-sm p-4 rounded-xl shadow-lg border border-amber-700/30 flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={UpdateNote}
+                    className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-lg transition-colors shadow-md flex-grow"
+                    disabled={isUpdating}
                   >
                     {isUpdating ? (
                       <LoaderCircle className="animate-spin" />
                     ) : (
-                      "Update Note"
+                      <>
+                        <PenLine size={18} />
+                        <span className="font-medium">Update Note</span>
+                      </>
                     )}
-                  </div>
+                  </button>
+
                   {!isQuizOpen && (
-                    <div
+                    <button
                       onClick={() => toggleInterface("quiz")}
-                      className="text-white bg-blue-900 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors"
+                      className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2.5 rounded-lg transition-colors shadow-md flex-grow"
                     >
-                      Start Quiz
-                    </div>
+                      <BrainCircuit size={18} />
+                      <span className="font-medium">Start Quiz</span>
+                    </button>
                   )}
-                  {!isQuestionsOpen&&(
-                  <div
-                    onClick={() => toggleInterface("questions")}
-                    className="text-white bg-blue-900 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors"
-                  >
-                    Start Questions
-                  </div>
+
+                  {!isQuestionsOpen && (
+                    <button
+                      onClick={() => toggleInterface("questions")}
+                      className="flex items-center gap-2 bg-[#2e4d55] hover:bg-[#26434a] text-white px-4 py-2.5 rounded-lg transition-colors shadow-md flex-grow"
+                    >
+                      <BookOpen size={18} />
+                      <span className="font-medium">Start Questions</span>
+                    </button>
                   )}
+
                   {!isChatOpen && (
-                    <div
+                    <button
                       onClick={() => toggleInterface("chat")}
-                      className="text-white bg-blue-900 px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-800 transition-colors"
+                      className="flex items-center gap-2 bg-[#80a984] hover:bg-[#6d9170] text-white px-4 py-2.5 rounded-lg transition-colors shadow-md flex-grow"
                     >
-                      Chat with notes
-                    </div>
+                      <MessageSquare size={18} />
+                      <span className="font-medium">Chat with Notes</span>
+                    </button>
                   )}
                 </div>
 
                 {/* Interface Components */}
                 {isChatOpen && (
-                  <ChatInterface
-                    selectedNote={selectedNoteDetails}
-                    onClose={() => setIsChatOpen(false)}
-                  />
+                  <div className="bg-[#2e4d55]/30 backdrop-blur-sm rounded-xl shadow-lg border border-amber-700/30 overflow-hidden">
+                    <ChatInterface
+                      selectedNote={selectedNoteDetails}
+                      onClose={() => setIsChatOpen(false)}
+                    />
+                  </div>
                 )}
                 {isQuizOpen && (
-                  <Quiz
-                    selectedNote={selectedNoteDetails}
-                    onClose={() => setIsQuizOpen(false)}
-                  />
+                  <div className="bg-[#2e4d55]/30 backdrop-blur-sm rounded-xl shadow-lg border border-amber-700/30 overflow-hidden">
+                    <Quiz
+                      selectedNote={selectedNoteDetails}
+                      onClose={() => setIsQuizOpen(false)}
+                    />
+                  </div>
                 )}
                 {isQuestionsOpen && (
-                  <QuestionInterface
-                    selectedNote={selectedNoteDetails}
-                    onClose={() => setIsQuestionsOpen(false)}
-                  />
+                  <div className="bg-[#2e4d55]/30 backdrop-blur-sm rounded-xl shadow-lg border border-amber-700/30 overflow-hidden">
+                    <QuestionInterface
+                      selectedNote={selectedNoteDetails}
+                      onClose={() => setIsQuestionsOpen(false)}
+                    />
+                  </div>
                 )}
               </div>
             </div>
           ) : (
             // No Note Selected State
-            <div className="h-full flex items-center justify-center">
-              <p className="text-white text-lg">
-                Select a note from the sidebar or create a new one
-              </p>
+            <div className="h-full flex flex-col items-center justify-center">
+              <div className="bg-[#2e4d55]/30 backdrop-blur-sm p-8 rounded-xl shadow-lg border border-amber-700/30 max-w-md text-center">
+                <h2 className="text-white text-2xl font-bold mb-3">
+                  Welcome to StudyMate!
+                </h2>
+                <p className="text-amber-50 text-lg mb-6">
+                  Select a note from the sidebar or create a new one to get
+                  started
+                </p>
+                <Dialog>
+                  <DialogTrigger>
+                    <button className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-lg transition-all shadow-md mx-auto">
+                      <Plus size={20} />
+                      <span className="font-medium">
+                        Create Your First Note
+                      </span>
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="border-none bg-gradient-to-b from-[#2e4d55] to-[#80a984] flex justify-center items-center">
+                    <DialogHeader>
+                      <DialogTitle className="text-white text-center text-xl font-bold">
+                        Create New Note
+                      </DialogTitle>
+                      <DialogDescription>
+                        <CreateNote />
+                      </DialogDescription>
+                    </DialogHeader>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
           )}
         </div>

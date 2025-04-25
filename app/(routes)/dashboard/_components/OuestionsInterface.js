@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import { AiSession } from "@/configs/AiModel";
 const EVALUATION_PROMPT = `
+ Only give Json format nothing else is needed, do not include '''json''' in it.
+
 You are an expert evaluator. Evaluate the following answers based on the note content and provided questions.
 
 Note Content:
@@ -24,7 +26,7 @@ Sample :
   ],
   "totalScore": number
 }
- Only give Json format nothing else is needed, dont include '''json''' in it.
+ Only give Json format nothing else is needed, do not include '''json''' in it.
 
 Questions and Answers to evaluate:
 {questionsAndAnswers}
@@ -140,14 +142,14 @@ const QuestionInterface = ({ selectedNote, onClose }) => {
 
   if (error) {
     return (
-      <div className="bg-blue-900 rounded-xl p-6 text-white">
+      <div className="bg-gradient-to-br from-[#2e4d55] via-[#be9b7b] to-[#80a984] rounded-xl p-6 text-white">
         <p>{error}</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-blue-900 rounded-xl p-6 relative max-h-[65vh] overflow-y-auto">
+    <div className="bg-gradient-to-br from-[#2e4d55] via-[#be9b7b] to-[#80a984] rounded-xl p-6 relative max-h-[65vh] overflow-y-auto">
       <button
         onClick={onClose}
         className="absolute top-4 right-4 text-white hover:text-gray-300 transition-colors"
@@ -158,7 +160,7 @@ const QuestionInterface = ({ selectedNote, onClose }) => {
       <h2 className="text-white text-xl font-semibold mb-6">Brief Questions</h2>
 
       {isSubmitted && (
-        <div className="bg-blue-800 p-4 rounded-lg mb-6">
+        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg mb-6">
           <h3 className="text-white font-semibold mb-2">
             Overall Score: {getTotalScore()}%
           </h3>
@@ -196,18 +198,18 @@ const QuestionInterface = ({ selectedNote, onClose }) => {
                   value={answers[index] || ""}
                   onChange={(e) => handleAnswerChange(index, e.target.value)}
                   placeholder="Write your answer here..."
-                  className="w-full h-32 p-3 rounded-lg bg-blue-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+                  className="w-full h-32 p-3 rounded-lg bg-white/10 backdrop-blur-sm text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400 resize-none"
                 />
                 {isSubmitted && feedback[index] && (
                   <div className="mt-2 space-y-2 text-sm">
                     <div className="text-white font-medium">
                       Score : {scores[index]}%
                     </div>
-                    <div className="text-green-400">
+                    <div className="text-amber-300">
                         <h1 className="text-white font-bold">Feedback :</h1>
                       {feedback[index].feedback}
                     </div>
-                    <div className="text-yellow-400">
+                    <div className="text-amber-200">
                     <h1 className="text-white font-bold">Suggestions :</h1>
                       {feedback[index].suggestions}
                     </div>
@@ -223,8 +225,8 @@ const QuestionInterface = ({ selectedNote, onClose }) => {
               disabled={isSubmitting || isSubmitted}
               className={`w-full py-3 rounded-lg font-medium transition-colors ${
                 isSubmitting || isSubmitted
-                  ? "bg-blue-700 text-gray-300 cursor-not-allowed"
-                  : "bg-blue-500 text-white hover:bg-blue-600"
+                  ? "bg-amber-700 text-gray-300 cursor-not-allowed"
+                  : "bg-amber-500 text-white hover:bg-amber-600"
               }`}
             >
               {isSubmitting

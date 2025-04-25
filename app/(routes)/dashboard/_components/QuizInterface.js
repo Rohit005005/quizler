@@ -64,14 +64,14 @@ const Quiz = ({ selectedNote, onClose }) => {
 
   const getOptionStyle = (option) => {
     if (selectedOption === null) {
-      return "bg-blue-800 hover:bg-blue-700 text-white";
+      return "bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white";
     }
     if (selectedOption === option) {
       return isCorrect 
         ? "bg-green-600 text-white" 
         : "bg-red-600 text-white";
     }
-    return "bg-blue-800/50 text-white cursor-not-allowed";
+    return "bg-white/5 backdrop-blur-sm text-white cursor-not-allowed";
   };
 
   const restartQuiz = () => {
@@ -90,11 +90,11 @@ const Quiz = ({ selectedNote, onClose }) => {
     const percentage = (score / quizData.questions.length) * 100;
 
     return (
-      <Card className="w-full bg-blue-900 text-white relative">
+      <Card className="w-full bg-gradient-to-br from-[#2e4d55] via-[#be9b7b] to-[#80a984] text-white relative">
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-2 text-white hover:text-blue-200"
+          className="absolute right-2 top-2 text-white hover:text-amber-200"
           onClick={onClose}
         >
           <X className="h-4 w-4" />
@@ -106,14 +106,14 @@ const Quiz = ({ selectedNote, onClose }) => {
           <div className="text-center space-y-2">
             <div className="text-4xl font-bold">{score}/{quizData.questions.length}</div>
             <Progress value={percentage} className="w-full h-2" />
-            <div className="text-sm text-blue-200">
+            <div className="text-sm text-amber-200">
               {percentage}% Correct
             </div>
           </div>
           
           <div className="space-y-4">
             {answers.map((answer, index) => (
-              <div key={index} className="border border-blue-700 rounded-lg p-4 space-y-2 bg-blue-800/50">
+              <div key={index} className="border border-white/20 rounded-lg p-4 space-y-2 bg-white/10 backdrop-blur-sm">
                 <div className="font-medium">{answer.question}</div>
                 <div className="flex items-center gap-2">
                   {answer.isCorrect ? (
@@ -123,7 +123,7 @@ const Quiz = ({ selectedNote, onClose }) => {
                   )}
                   <span>Your answer: {answer.selected}</span>
                   {!answer.isCorrect && (
-                    <span className="text-blue-300">(Correct: {answer.correct})</span>
+                    <span className="text-amber-300">(Correct: {answer.correct})</span>
                   )}
                 </div>
               </div>
@@ -133,14 +133,14 @@ const Quiz = ({ selectedNote, onClose }) => {
         <CardFooter className="flex gap-4 justify-end">
           <Button 
             onClick={restartQuiz}
-            className="bg-blue-700 hover:bg-blue-600 text-white"
+            className="bg-amber-500 hover:bg-amber-600 text-white"
           >
             Try Again
           </Button>
           <Button 
             onClick={onClose}
             variant="outline"
-            className="text-white border-blue-700 hover:bg-blue-800"
+            className="text-white border-white/20 hover:bg-white/10"
           >
             Close
           </Button>
@@ -150,17 +150,17 @@ const Quiz = ({ selectedNote, onClose }) => {
   }
 
   return (
-    <Card className="w-full bg-blue-900 text-white relative rounded-xl">
+    <Card className="w-full bg-gradient-to-br from-[#2e4d55] via-[#be9b7b] to-[#80a984] text-white relative rounded-xl">
       <button
           onClick={onClose}
-          className="text-white hover:bg-blue-800 rounded-full p-1 absolute right-2 top-2"
+          className="text-white hover:bg-white/20 rounded-full p-1 absolute right-2 top-2"
         >
           <X size={20} />
         </button>
       <CardHeader>
         <div className="space-y-2 mt-5">
           <Progress value={progress} className="w-full h-2" />
-          <div className="text-sm text-blue-200 text-left">
+          <div className="text-sm text-amber-200 text-left">
             Question {currentIndex + 1} of {quizData.questions.length}
           </div>
         </div>

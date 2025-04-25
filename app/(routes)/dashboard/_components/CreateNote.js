@@ -4,7 +4,7 @@ import { db } from "@/configs";
 import { AiSession } from "@/configs/AiModel";
 import { quizes } from "@/configs/schema";
 import { useUser } from "@clerk/nextjs";
-import { Loader2 } from "lucide-react";
+import { Loader2, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -109,7 +109,7 @@ function CreateNote() {
   ]
 }`;
 
-  const QUESTIONS_PROMPT = ` Based on the title and content provided, generate a set of long-answer questions that test deep understanding of the material. The questions should require detailed explanations and critical thinking. Provide the questions in JSON format with the following structure. Only give JSON format, nothing else is needed.Only give Json format nothing else is needed, dont include '''json''' in it. Sample:
+  const QUESTIONS_PROMPT = ` Only give Json format nothing else is needed, dont include '''json''' in it... Based on the title and content provided, generate a set of long-answer questions that test deep understanding of the material. The questions should require detailed explanations and critical thinking. Provide the questions in JSON format with the following structure. Sample:
 {
   "longQuestions": [
     {
@@ -142,7 +142,7 @@ function CreateNote() {
           title: noteTitle,
           content: noteContent,
           quiz: quizResult.response.text(),
-          questions: questionsResult.response.text(), 
+          questions: questionsResult.response.text(),
           createBy: user?.primaryEmailAddress?.emailAddress,
         })
         .returning({ id: quizes.id });
@@ -156,32 +156,42 @@ function CreateNote() {
   return (
     <div>
       <form
-        className="flex flex-col gap-5  p-5 h-[500px] w-[400px] justify-center rounded-3xl bg-[#192d4d]"
+        className="flex flex-col gap-5 p-5 h-[500px] w-[400px] justify-center rounded-3xl bg-[#2e4d55]/90 backdrop-blur-sm border border-amber-500/20 shadow-lg"
         onSubmit={(e) => handleSubmit(e)}
       >
+        <div className="flex justify-center items-center mb-2">
+          <BookOpen className="w-6 h-6 mr-2 text-amber-400" />
+          <h2 className="text-xl font-bold text-amber-100">Create New Note</h2>
+        </div>
+
         <div className="flex flex-col gap-2">
-          <label className="text-white">Title</label>
+          <label className="text-amber-100 font-medium">Title</label>
           <input
             type="text"
             required
-            className="bg-[#294066] text-white p-1"
+            className="bg-[#26434a] text-white p-3 rounded-lg border border-amber-500/30 focus:outline-none focus:ring-2 focus:ring-amber-400"
             onChange={(e) => setNoteTitle(e.target.value)}
+            placeholder="Enter note title..."
           />
         </div>
+
         <div className="flex flex-col h-full gap-2">
-          <label className="text-white">Content</label>
+          <label className="text-amber-100 font-medium">Content</label>
           <textarea
             required
-            className="h-full bg-[#304972] resize-none text-white p-2"
+            className="h-full bg-[#26434a] resize-none text-white p-4 rounded-lg border border-amber-500/30 focus:outline-none focus:ring-2 focus:ring-amber-400"
             onChange={(e) => setNoteContent(e.target.value)}
+            placeholder="Enter your note content here..."
           />
         </div>
-        <div className=" flex justify-end">
+
+        <div className="flex justify-end">
           <button
             type="submit"
-            className="text-white text-md  rounded-full w-[20%] py-1 bg-[#203d6d] hover:bg-[#3568b9]"
+            className="text-white font-medium flex items-center gap-2 rounded-lg px-6 py-2 bg-amber-500 hover:bg-amber-600 transition-colors shadow-md"
+            disabled={loading}
           >
-            {loading ? <Loader2 className="animate-spin" /> : "Save"}
+            {loading ? <Loader2 className="animate-spin" /> : "Create Note"}
           </button>
         </div>
       </form>
